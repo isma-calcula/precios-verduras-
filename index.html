@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precios de Verduras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .clear-btn {
+            background: #ff4757;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .clear-btn:hover {
+            background: #ee5a6f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .trash-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .label {
+            flex: 1;
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 120px;
+        }
+
+        .dollar-sign {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #27ae60;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 10px 10px 10px 30px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 16px;
+            text-align: right;
+            transition: all 0.3s;
+        }
+
+        .price-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .item-row {
+                gap: 10px;
+            }
+
+            .label {
+                font-size: 14px;
+            }
+
+            .input-wrapper {
+                width: 100px;
+            }
+
+            .price-input {
+                font-size: 14px;
+                padding: 8px 8px 8px 25px;
+            }
+
+            .dollar-sign {
+                font-size: 14px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Precios de Verduras</h1>
+        
+        <div class="header-controls">
+            <button class="clear-btn" onclick="clearAll()">
+                <svg class="trash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                Limpiar
+            </button>
+        </div>
+
+        <div id="items-container"></div>
+    </div>
+
+    <script>
+        const verduras = [
+            'Cebolla',
+            'Chile',
+            'Guisquil',
+            'Limón',
+            'Plátano',
+            'Papa',
+            'Pepino',
+            'Tomate',
+            'Zanahoria'
+        ];
+
+        const dataStore = {};
+
+        function loadData() {
+            const saved = localStorage.getItem('preciosVerduras');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(dataStore, parsed);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('preciosVerduras', JSON.stringify(dataStore));
+        }
+
+        function formatPrice(value) {
+            if (!value) return '';
+            const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+            if (isNaN(num)) return '';
+            return num.toFixed(2);
+        }
+
+        function createItemRow(nombre) {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = nombre;
+            
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'input-wrapper';
+            
+            const dollarSign = document.createElement('span');
+            dollarSign.className = 'dollar-sign';
+            dollarSign.textContent = '$';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'price-input';
+            input.placeholder = '0.00';
+            input.dataset.item = nombre;
+            
+            if (dataStore[nombre]) {
+                input.value = dataStore[nombre];
+            }
+            
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/[^0-9.]/g, '');
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if (parts[1] && parts[1].length > 2) {
+                    value = parts[0] + '.' + parts[1].substring(0, 2);
+                }
+                e.target.value = value;
+            });
+            
+            input.addEventListener('blur', function(e) {
+                const formatted = formatPrice(e.target.value);
+                e.target.value = formatted;
+                dataStore[nombre] = formatted;
+                saveData();
+            });
+            
+            inputWrapper.appendChild(dollarSign);
+            inputWrapper.appendChild(input);
+            
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            
+            return row;
+        }
+
+        function clearAll() {
+            if (confirm('¿Está seguro que desea limpiar todos los precios?')) {
+                Object.keys(dataStore).forEach(key => delete dataStore[key]);
+                saveData();
+                
+                document.querySelectorAll('.price-input').forEach(input => {
+                    input.value = '';
+                });
+            }
+        }
+
+        function init() {
+            loadData();
+            const container = document.getElementById('items-container');
+            verduras.forEach(verdura => {
+                container.appendChild(createItemRow(verdura));
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
